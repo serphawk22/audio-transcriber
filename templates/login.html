@@ -1,0 +1,68 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Login - LinguaVoice{% endblock %}
+{% block page_title %}Welcome Back!{% endblock %}
+{% block page_subtitle %}Your Serp Hawk missed you! 🦅✨{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <!-- Mascot Welcome -->
+        <div class="mascot-welcome">
+            <div class="mascot-container">
+                <img src="/static/images/serphawk_logo.jpg"
+                     class="mascot-avatar hawk-mascot-interactive wake idle"
+                     alt="Serp Hawk">
+            </div>
+        </div>
+
+        <!-- Login Card -->
+        <div class="auth-card">
+            {% if get_flashed_messages() %}
+                <div class="error-alert">
+                    {{ get_flashed_messages()[0] }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label class="form-label" for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="form-input"
+                        placeholder="you@example.com"
+                        required
+                        autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-input"
+                        placeholder="••••••••"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-primary submit-btn">
+                    <span>Sign In</span>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="divider">
+                <p class="text-muted">
+                    Don't have an account?
+                    <a href="/signup" class="signup-link">Sign up free</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

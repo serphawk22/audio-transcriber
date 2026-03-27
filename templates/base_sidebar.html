@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LinguaVoice{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style2.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="brand">
+                    <img src="/static/images/serphawk_logo.jpg" alt="LinguaVoice" class="brand-logo">
+                    <span class="brand-text">LinguaVoice</span>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">MAIN</div>
+                <a href="/dashboard" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="/transcription" class="nav-link {% if request.endpoint == 'transcription_page' %}active{% endif %}">
+                    <span class="nav-icon">🎙️</span> Transcription
+                </a>
+                <a href="/ai_tutor" class="nav-link {% if request.endpoint == 'ai_tutor_page' %}active{% endif %}">
+                    <span class="nav-icon">🤖</span> AI Tutor
+                </a>
+                <a href="/vocabulary" class="nav-link {% if request.endpoint == 'vocabulary_page' %}active{% endif %}">
+                    <span class="nav-icon">📚</span> Vocabulary
+                </a>
+                <a href="/learning_path" class="nav-link {% if request.endpoint == 'learning_path' %}active{% endif %}">
+                    <span class="nav-icon">🎯</span> Learning Path
+                </a>
+                <a href="/analytics" class="nav-link {% if request.endpoint == 'analytics_page' %}active{% endif %}">
+                    <span class="nav-icon">📈</span> Analytics
+                </a>
+                <a href="/notes" class="nav-link {% if request.endpoint == 'notes_page' %}active{% endif %}">
+                    <span class="nav-icon">📝</span> Notes
+                </a>
+                <a href="/community" class="nav-link {% if request.endpoint == 'community_page' %}active{% endif %}">
+                    <span class="nav-icon">👥</span> Community
+                </a>
+                <a href="/validation" class="nav-link {% if request.endpoint == 'validation_page' %}active{% endif %}">
+                    <span class="nav-icon">✅</span> Validation
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <small>Logged in as {{ session.get('user_name', 'User') }}</small>
+                </div>
+                <a href="/logout" class="btn btn-secondary btn-sm">Sign Out</a>
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p class="page-subtitle">{% block page_subtitle %}Welcome to LinguaVoice{% endblock %}</p>
+                </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-ghost" id="theme-toggle" title="Toggle theme">🌙</button>
+                    <a href="/settings" class="btn btn-secondary">Settings</a>
+                </div>
+            </header>
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    <div id="toast-container"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

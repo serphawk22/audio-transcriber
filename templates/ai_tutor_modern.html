@@ -1,0 +1,374 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}AI Voice Tutor - LinguaVoice{% endblock %}
+{% block page_title %}AI Voice Tutor{% endblock %}
+{% block page_subtitle %}Master languages with your intelligent companion{% endblock %}
+
+{% block content %}
+<div class="tutor-page-container">
+
+    <!-- 1. Language Setup Module -->
+    <div class="setup-card" id="language-setup">
+        <div class="setup-header">
+            <h1 class="setup-title">Conversation Practice</h1>
+            <p class="setup-subtitle">Choose your languages to start speaking with Serp Hawk</p>
+        </div>
+
+        <div class="language-section">
+            <label class="section-label">I speak:</label>
+            <div class="language-grid">
+                <div class="lang-card" onclick="selectBase('en', this)">
+                    <span class="lang-flag">🇺🇸</span>
+                    <div class="lang-name">English</div>
+                </div>
+                <div class="lang-card" onclick="selectBase('es', this)">
+                    <span class="lang-flag">🇪🇸</span>
+                    <div class="lang-name">Spanish</div>
+                </div>
+                <div class="lang-card" onclick="selectBase('hi', this)">
+                    <span class="lang-flag">🇮🇳</span>
+                    <div class="lang-name">Hindi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="language-section">
+            <label class="section-label">I want to learn:</label>
+            <div class="language-grid">
+                <div class="lang-card" onclick="selectTarget('en', this)">
+                    <span class="lang-flag">🇺🇸</span>
+                    <div class="lang-name">English</div>
+                </div>
+                <div class="lang-card" onclick="selectTarget('es', this)">
+                    <span class="lang-flag">🇪🇸</span>
+                    <div class="lang-name">Spanish</div>
+                </div>
+                <div class="lang-card" onclick="selectTarget('hi', this)">
+                    <span class="lang-flag">🇮🇳</span>
+                    <div class="lang-name">Hindi</div>
+                </div>
+            </div>
+        </div>
+
+        <button id="start-btn" class="btn btn-primary btn-large" onclick="startVoiceConversation()" disabled>
+            Start Conversation <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+
+    <!-- 2. Active Tutor Interface -->
+    <div class="tutor-interface" id="voice-interface">
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="mascot-profile">
+                    <div class="mascot-avatar-small">
+                        <img src="{{ url_for('static', filename='images/serphawk_logo.jpg') }}" alt="Serp Hawk">
+                    </div>
+                    <div class="mascot-info">
+                        <h3>Serp Hawk Tutor</h3>
+                        <div class="mascot-status">
+                            <span class="status-dot"></span> Online & Ready
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="exitConversation()">
+                    <i class="fas fa-times"></i> End Session
+                </button>
+            </div>
+
+            <div class="chat-content">
+                <!-- Mascot Logic -->
+                <div class="mascot-stage">
+                    <div class="mascot-large" id="ai-mascot">
+                        <img src="{{ url_for('static', filename='images/serphawk_logo.jpg') }}" alt="Serp Hawk">
+                        <div class="speaking-rings"></div>
+                    </div>
+                </div>
+
+                <!-- Bubble Stream -->
+                <div class="bubble-container" id="bubble-stream">
+                    <!-- Default AI Message -->
+                    <div class="bubble bubble-ai" id="ai-current-msg">
+                        <div class="msg-content">Hello! I'm Serp Hawk. Click the microphone to start our lesson.</div>
+                        <div class="translation" id="ai-translation" style="display:none;"></div>
+                    </div>
+
+                    <!-- Feedback Bubble (Hidden by default) -->
+                    <div class="bubble bubble-feedback" id="feedback-bubble" style="display:none;">
+                        <i class="fas fa-check-circle"></i> <span>Perfect pronunciation!</span>
+                    </div>
+
+                    <!-- User Message (Hidden by default) -->
+                    <div class="bubble bubble-user" id="user-msg" style="display:none;">
+                        ...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls (Bottom) -->
+            <div class="controls-area">
+                <div class="mic-button-wrapper">
+                    <button class="mic-btn" id="mic-button" onclick="toggleListening()">
+                        <i class="fas fa-microphone"></i>
+                        <div class="mic-waves"></div>
+                    </button>
+                </div>
+
+                <div class="status-badge" id="status-text">Tap mic to speak</div>
+
+                <div class="action-row">
+                    <button class="action-btn-secondary" onclick="repeatPhrase()">
+                        <i class="fas fa-volume-up"></i> Listen Again
+                    </button>
+                    <button class="action-btn-secondary" onclick="nextPhrase()"
+                        style="border-color: var(--emerald-500); color: var(--emerald-700);">
+                        Next Phrase <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let baseLanguage = null;
+    let targetLanguage = null;
+    let isListening = false;
+    let currentPhrase = null;
+    let recognition = null;
+
+    // Config
+    const languages = {
+        'en': { name: 'English', code: 'en-US' },
+        'es': { name: 'Spanish', code: 'es-ES' },
+        'hi': { name: 'Hindi', code: 'hi-IN' }
+    };
+
+    // --- Setup Functions ---
+
+    function selectBase(lang, el) {
+        baseLanguage = lang;
+        // Visual selection
+        document.querySelectorAll('.language-section:first-of-type .lang-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        checkStart();
+    }
+
+    function selectTarget(lang, el) {
+        targetLanguage = lang;
+        // Visual selection
+        document.querySelectorAll('.language-section:last-of-type .lang-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        checkStart();
+    }
+
+    function checkStart() {
+        const btn = document.getElementById('start-btn');
+        if (baseLanguage && targetLanguage && baseLanguage !== targetLanguage) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
+    function startVoiceConversation() {
+        // Transition UI
+        document.getElementById('language-setup').style.display = 'none';
+
+        const interface = document.getElementById('voice-interface');
+        interface.classList.add('active');
+
+        // Init logic
+        initSpeechRecognition();
+        getNextPhrase();
+    }
+
+    function exitConversation() {
+        // Stop everything
+        if (recognition) recognition.stop();
+        window.speechSynthesis.cancel();
+
+        // Reset UI
+        document.getElementById('voice-interface').classList.remove('active');
+        setTimeout(() => {
+            document.getElementById('language-setup').style.display = 'block';
+            document.getElementById('language-setup').style.animation = 'fadeIn 0.5s ease-out';
+        }, 100);
+    }
+
+    // --- Core Logic ---
+
+    function initSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = languages[targetLanguage].code;
+
+            recognition.onstart = () => {
+                updateStatus('Listening...', 'listening');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handleUserSpeech(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech error:', event.error);
+                stopListeningUI();
+                updateStatus('Didn\'t catch that. Try again.', 'error');
+            };
+
+            recognition.onend = () => {
+                stopListeningUI();
+            };
+        } else {
+            alert('Speech recognition is not supported in this browser. Please use Chrome.');
+        }
+    }
+
+    async function getNextPhrase() {
+        updateStatus('Serp Hawk is thinking...', 'loading');
+
+        // Reset bubbles
+        document.getElementById('feedback-bubble').style.display = 'none';
+        document.getElementById('user-msg').style.display = 'none';
+
+        try {
+            const response = await fetch('/api/ai_voice_phrase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    base_language: baseLanguage,
+                    target_language: targetLanguage
+                })
+            });
+
+            const data = await response.json();
+            currentPhrase = data;
+
+            // Update UI
+            const aiBubble = document.getElementById('ai-current-msg');
+            aiBubble.querySelector('.msg-content').textContent = data.phrase;
+
+            const transEl = document.getElementById('ai-translation');
+            transEl.textContent = data.translation;
+            transEl.style.display = 'block';
+
+            // Speak
+            speakPhrase(data.phrase, targetLanguage);
+            updateStatus('Tap mic to repeat', 'ready');
+
+        } catch (error) {
+            console.error(error);
+            updateStatus('Error connecting to AI', 'error');
+        }
+    }
+
+    function speakPhrase(text, lang) {
+        window.speechSynthesis.cancel(); // Stop preview audio
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = languages[lang].code;
+        utterance.rate = 0.85;
+
+        // Mascot animation trigger
+        const mascot = document.getElementById('ai-mascot');
+        mascot.classList.add('speaking');
+
+        utterance.onend = () => {
+            mascot.classList.remove('speaking');
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // --- User Interaction ---
+
+    function toggleListening() {
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+            isListening = true;
+            document.getElementById('mic-button').classList.add('listening');
+        }
+    }
+
+    function stopListeningUI() {
+        isListening = false;
+        document.getElementById('mic-button').classList.remove('listening');
+    }
+
+    function handleUserSpeech(transcript) {
+        // Show what user said
+        const userBubble = document.getElementById('user-msg');
+        userBubble.textContent = transcript;
+        userBubble.style.display = 'block';
+        userBubble.classList.add('animate-in'); // Add animation class if not present
+
+        checkPronunciation(transcript);
+    }
+
+    async function checkPronunciation(userText) {
+        updateStatus('Analyzing pronunciation...', 'loading');
+
+        try {
+            const response = await fetch('/api/ai_check_pronunciation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    expected: currentPhrase.phrase,
+                    actual: userText,
+                    language: targetLanguage,
+                    focus_word: currentPhrase.focus_word
+                })
+            });
+
+            const data = await response.json();
+            showFeedback(data);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function showFeedback(data) {
+        const feedbackBubble = document.getElementById('feedback-bubble');
+        feedbackBubble.style.display = 'flex';
+        feedbackBubble.className = 'bubble bubble-feedback animate-in'; // Reset classes
+
+        if (data.correct) {
+            feedbackBubble.classList.add('success');
+            feedbackBubble.innerHTML = `<i class="fas fa-check-circle"></i> <span>${data.message || 'Excellent!'}</span>`;
+            updateStatus('Great job! Next phrase?', 'success');
+        } else {
+            feedbackBubble.classList.add('error');
+            feedbackBubble.innerHTML = `<i class="fas fa-redo"></i> <span>${data.message || 'Try again.'}</span>`;
+            updateStatus('Keep trying!', 'alert');
+        }
+    }
+
+    // --- Helpers ---
+
+    function repeatPhrase() {
+        if (currentPhrase) speakPhrase(currentPhrase.phrase, targetLanguage);
+    }
+
+    function nextPhrase() {
+        getNextPhrase();
+    }
+
+    function updateStatus(text, type) {
+        const el = document.getElementById('status-text');
+        el.textContent = text;
+        el.className = 'status-badge'; // reset
+        if (type === 'listening') el.classList.add('listening');
+    }
+
+</script>
+{% endblock %}
