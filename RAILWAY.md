@@ -13,7 +13,7 @@ Ensure you have the `Dockerfile` in your root (the same one we used for Render).
 
 ## 3. Environment Variables
 Go to the **Variables** tab in your Railway service and add:
-- `GEMINI_API_KEY`: Your Google Gemini API Key.
+- `OPENAI_API_KEY`: Your OpenAI API Key.
 - `FLASK_SECRET_KEY`: A secure random string.
 - `PORT`: `5000`
 

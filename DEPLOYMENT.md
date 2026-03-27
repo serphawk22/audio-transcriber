@@ -8,17 +8,17 @@ This guide provides instructions on how to deploy the LinguaVoice application to
 - **Git**
 
 ## 1. Environment Configuration
-The application requires a Gemini API key for AI Tutor features.
+The application requires an OpenAI API key for AI Tutor features.
 
 ### Local Config
 1. Create/edit `config.py` in the root directory:
 ```python
-GEMINI_API_KEY = "your_gemini_api_key_here"
+OPENAI_API_KEY = "your_openai_api_key_here"
 ```
 
 ### Production Environment Variables
 If deploying to platforms like Render, Railway, or a VPS, set these environment variables:
-- `GEMINI_API_KEY`: Your Google Gemini API key.
+- `OPENAI_API_KEY`: Your OpenAI API key.
 - `FLASK_SECRET_KEY`: A secure random string for session signing.
 
 ## 2. Dependency Installation

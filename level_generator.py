@@ -1,8 +1,8 @@
 """
 Learning Level Generator for 100-Level Progressive System
-Generates difficulty-appropriate content using Gemini AI
+Generates difficulty-appropriate content using OpenAI
 """
-import gemini_service
+import openai_service
 import json
 
 class LevelGenerator:
@@ -56,7 +56,7 @@ Return exactly 5 UNIQUE objects in JSON format:
 Ensure the words are distinctly different from children's basic level 1 words unless specifically requested. 
 The 'meaning' field should be a concise English translation."""
             
-            response = gemini_service.gemini_service.model.generate_content(final_prompt)
+            response = openai_service.openai_service.generate_content(final_prompt)
             if response and response.text:
                 text = response.text.strip()
                 # Remove markdown

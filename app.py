@@ -11,15 +11,15 @@ from language_detector import OfflineLanguageDetector
 from conversation_engine import conversation_engine
 from api_service import api_service
 
-# Initialize Gemini Service
+# Initialize OpenAI Service
 try:
-    from config import GEMINI_API_KEY
-    from gemini_service import GeminiWordService, gemini_service as gs
-    import gemini_service
-    gemini_service.gemini_service = GeminiWordService(GEMINI_API_KEY)
-    print("[APP] Gemini API initialized successfully")
+    from config import OPENAI_API_KEY
+    from openai_service import OpenAIWordService, openai_service as os_svc
+    import openai_service
+    openai_service.openai_service = OpenAIWordService(OPENAI_API_KEY)
+    print("[APP] OpenAI API initialized successfully")
 except Exception as e:
-    print(f"[APP] Warning: Could not initialize Gemini API: {e}")
+    print(f"[APP] Warning: Could not initialize OpenAI API: {e}")
     print("[APP] Word meanings will use fallback dictionary APIs")
 
 app = Flask(__name__)
